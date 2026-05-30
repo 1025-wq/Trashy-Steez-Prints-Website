@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trashy Steez Prints — You Design It, We Make It</title>
+  <meta name="description" content="Trashy Steez Prints — South Africa's boldest custom print studio. T-shirts, hoodies, caps, bottles & more. Get an instant quote online.">
+  <meta name="theme-color" content="#05091a">
+
+  <!-- Open Graph / social -->
+  <meta property="og:title" content="Trashy Steez Prints — You Design It, We Make It">
+  <meta property="og:description" content="South Africa's boldest custom print studio. Instant quotes. Nationwide delivery.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="photo-factory.jpg">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Supabase (deferred so it never blocks render) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+       ============================================================ */
+    :root {
+      --color-bg:            #05091a;
+      --color-surface:       #0c1330;
+      --color-surface-2:     #111a3a;
+      --color-cyan:          #00d4ff;
+      --color-cyan-dim:      #00a8cc;
+      --color-white:         #f0f8ff;
+      --color-muted:         #7a9ab5;
+      --color-border:        rgba(0, 212, 255, 0.15);
+      --color-border-bright: rgba(0, 212, 255, 0.4);
+      --glow-cyan:           0 0 20px rgba(0, 212, 255, 0.4), 0 0 40px rgba(0, 212, 255, 0.15);
+      --glow-cyan-strong:    0 0 30px rgba(0, 212, 255, 0.6), 0 0 60px rgba(0, 212, 255, 0.25);
+
+      --text-hero:   clamp(64px, 12vw, 140px);
+      --text-h2:     clamp(36px, 6vw, 72px);
+      --text-h3:     clamp(22px, 3vw, 32px);
+      --text-body:   16px;
+      --text-small:  14px;
+      --text-label:  12px;
+
+      --whatsapp:    #25D366;
+    }
+
+    /* ============================================================
+       RESET & BASE
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-white);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      font-size: var(--text-body);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    img { max-width: 100%; display: block; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+    ul { list-style: none; }
+
+    ::selection { background: var(--color-cyan); color: var(--color-bg); }
+
+    /* Focus visibility for keyboard users */
+    a:focus-visible, button:focus-visible, input:focus-visible,
+    textarea:focus-visible, select:focus-visible {
+      outline: 2px solid var(--color-cyan);
+      outline-offset: 2px;
+    }
+
+    /* ============================================================
+       LAYOUT HELPERS
+       ============================================================ */
+    .container { width: 100%; padding: 0 16px; margin: 0 auto; }
+    @media (min-width: 768px)  { .container { padding: 0 24px; } }
+    @media (min-width: 1024px) { .container { max-width: 1280px; padding: 0 48px; } }
+
+    .section { padding: 88px 0; position: relative; }
+    @media (min-width: 768px) { .section { padding: 120px 0; } }
+
+    .eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-cyan);
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: var(--text-h2);
+      line-height: 0.95;
+      letter-spacing: 0.01em;
+    }
+    .section-sub { color: var(--color-muted); margin-top: 12px; max-width: 540px; }
+
+    /* ============================================================
+       GLOBAL TEXTURE LAYERS
+       ============================================================ */
+    .grain-overlay {
+      position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+      opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    /* ============================================================
+       BUTTONS
+       ============================================================ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      font-family: 'DM Sans', sans-serif; font-weight: 600;
+      font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 16px 28px; min-height: 48px; border-radius: 4px;
+      transition: transform 0.2s ease-out, box-shadow 0.2s ease-out,
+                  background-color 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
+      border: 1.5px solid transparent;
+    }
+    .btn-primary { background: var(--color-cyan); color: var(--color-bg); }
+    .btn-outline { background: transparent; color: var(--color-white); border-color: var(--color-border-bright); }
+    .btn-whatsapp { background: var(--whatsapp); color: #06210f; }
+
+    @media (hover: hover) and (pointer: fine) {
+      .btn-primary:hover  { box-shadow: var(--glow-cyan-strong); transform: translateY(-2px); }
+      .btn-outline:hover  { border-color: var(--color-cyan); color: var(--color-cyan); box-shadow: var(--glow-cyan); transform: translateY(-2px); }
+      .btn-whatsapp:hover { box-shadow: 0 6px 30px rgba(37,211,102,0.5); transform: translateY(-2px); }
+    }
+
+    /* ============================================================
+       NAVBAR
+       ============================================================ */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(5, 9, 26, 0.9);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+      transition: padding 0.2s ease-out, background-color 0.2s ease-out;
+    }
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 24px; padding: 16px 0;
+      transition: padding 0.2s ease-out;
+    }
+    .nav.scrolled .nav-inner { padding: 9px 0; }
+
+    .nav-logo { display: flex; align-items: center; gap: 12px; }
+    .nav-logo img {
+      height: 46px; width: 46px; border-radius: 50%; object-fit: cover;
+      box-shadow: var(--glow-cyan); border: 1px solid var(--color-border-bright);
+    }
+    .nav-logo .wordmark {
+      font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+      letter-spacing: 0.06em; line-height: 1;
+    }
+    .nav-logo .wordmark span { color: var(--color-cyan); }
+
+    .nav-links { display: none; gap: 30px; align-items: center; }
+    .nav-links a {
+      font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--color-muted); transition: color 0.2s ease-out; position: relative;
+      padding: 6px 0;
+    }
+    @media (hover: hover) and (pointer: fine) { .nav-links a:hover { color: var(--color-white); } }
+    .nav-links a.active { color: var(--color-cyan); }
+    .nav-links a.active::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
+      background: var(--color-cyan); box-shadow: var(--glow-cyan);
+    }
+
+    .nav-actions { display: none; align-items: center; gap: 12px; }
+    .nav-cta {
+      font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;
+      padding: 11px 18px; border: 1.5px solid var(--color-border-bright); border-radius: 4px;
+      color: var(--color-cyan); transition: box-shadow 0.2s ease-out, border-color 0.2s ease-out;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .nav-cta:hover { box-shadow: var(--glow-cyan); border-color: var(--color-cyan); }
+    }
+    .nav-wa {
+      width: 42px; height: 42px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(37,211,102,0.12); border: 1px solid rgba(37,211,102,0.4);
+      transition: background-color 0.2s ease-out;
+    }
+    .nav-wa svg { width: 22px; height: 22px; }
+    @media (hover: hover) and (pointer: fine) { .nav-wa:hover { background: rgba(37,211,102,0.25); } }
+
+    @media (min-width: 1024px) {
+      .nav-links, .nav-actions { display: flex; }
+    }
+
+    /* Hamburger */
+    .hamburger {
+      display: flex; flex-direction: column; justify-content: center; gap: 5px;
+      width: 44px; height: 44px; align-items: center;
+    }
+    .hamburger span {
+      display: block; width: 26px; height: 2px; background: var(--color-cyan);
+      transition: transform 0.25s ease-out, opacity 0.2s ease-out;
+    }
+    .nav-overlay.open ~ .nav .hamburger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    @media (min-width: 1024px) { .hamburger { display: none; } }
+
+    /* Mobile fullscreen nav overlay */
+    .nav-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(5, 9, 26, 0.98);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px;
+      opacity: 0; pointer-events: none; transform: translateY(-12px);
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    }
+    .nav-overlay.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+    .nav-overlay a {
+      font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px, 11vw, 64px);
+      letter-spacing: 0.04em; color: var(--color-white); line-height: 1.1;
+      transition: color 0.2s ease-out;
+    }
+    .nav-overlay a:active, .nav-overlay a:hover { color: var(--color-cyan); }
+    .nav-overlay .overlay-cta { margin-top: 28px; }
+    .nav-overlay-close {
+      position: absolute; top: 20px; right: 18px;
+      width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+      font-size: 34px; color: var(--color-cyan); font-family: 'Bebas Neue', sans-serif;
+    }
+
+    /* ============================================================
+       HERO
+       ============================================================ */
+    #hero {
+      position: relative; min-height: 100svh;
+      background-image: url('photo-factory.jpg');
+      background-size: cover; background-position: center top;
+      display: flex;
+    }
+    #hero::before {
+      content: ''; position: absolute; inset: 0; z-index: 1;
+      background: linear-gradient(to bottom,
+        rgba(5,9,26,0.70) 0%, rgba(5,9,26,0.45) 45%, rgba(5,9,26,0.90) 100%);
+    }
+    #hero::after {
+      content: ''; position: absolute; inset: 0; z-index: 2;
+      background: rgba(0,60,100,0.20); mix-blend-mode: color;
+    }
+    #hero > * { position: relative; z-index: 3; }
+
+    .hero-content {
+      align-self: flex-end;
+      width: 100%; max-width: 760px;
+      padding: 0 16px 18vh;
+    }
+    @media (min-width: 768px) { .hero-content { padding: 0 0 15vh 8%; } }
+
+    .hero-label {
+      font-family: 'Space Mono', monospace; font-size: 11px;
+      letter-spacing: 0.15em; text-transform: uppercase; color: var(--color-cyan);
+      margin-bottom: 14px;
+    }
+    .hero-headline {
+      font-family: 'Bebas Neue', sans-serif; line-height: 0.86;
+      letter-spacing: 0.005em; text-transform: uppercase;
+    }
+    .hero-headline .line {
+      display: block; font-size: clamp(52px, 11vw, 120px); color: var(--color-white);
+    }
+    .hero-loud {
+      display: block; color: var(--color-cyan);
+      text-shadow: var(--glow-cyan-strong);
+      font-size: clamp(64px, 13vw, 150px); line-height: 0.82; letter-spacing: -0.02em;
+    }
+    .hero-sub {
+      margin-top: 20px; color: var(--color-white);
+      font-size: clamp(15px, 2.4vw, 19px); letter-spacing: 0.02em; opacity: 0.92;
+    }
+    .hero-ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+
+    /* scroll indicator */
+    #hero .scroll-indicator {
+      position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
+      z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: var(--color-muted); font-family: 'Space Mono', monospace;
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    }
+    .scroll-indicator .mouse {
+      width: 24px; height: 38px; border: 1.5px solid var(--color-border-bright);
+      border-radius: 14px; position: relative;
+    }
+    .scroll-indicator .mouse::after {
+      content: ''; position: absolute; left: 50%; top: 7px; width: 3px; height: 7px;
+      border-radius: 2px; background: var(--color-cyan); transform: translateX(-50%);
+      animation: scrollDot 1.6s ease-in-out infinite;
+    }
+    @keyframes scrollDot {
+      0% { opacity: 0; transform: translate(-50%, 0); }
+      40% { opacity: 1; }
+      80% { opacity: 0; transform: translate(-50%, 12px); }
+      100% { opacity: 0; }
+    }
+
+    /* hero entrance stagger */
+    .hero-anim { opacity: 0; transform: translateY(24px); animation: heroUp 0.5s ease-out forwards; }
+    .hero-anim.d1 { animation-delay: 0.05s; }
+    .hero-anim.d2 { animation-delay: 0.15s; }
+    .hero-anim.d3 { animation-delay: 0.25s; }
+    .hero-anim.d4 { animation-delay: 0.40s; }
+    .hero-anim.d5 { animation-delay: 0.55s; }
+    @keyframes heroUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* ============================================================
+       MARQUEE STRIP
+       ============================================================ */
+    .marquee-strip {
+      background: var(--color-cyan); color: var(--color-bg);
+      overflow: hidden; white-space: nowrap; padding: 13px 0;
+      border-top: 1px solid rgba(5,9,26,0.2); border-bottom: 1px solid rgba(5,9,26,0.2);
+    }
+    .marquee-track {
+      display: inline-block; white-space: nowrap;
+      font-family: 'Bebas Neue', sans-serif; font-size: 19px; letter-spacing: 0.1em;
+      animation: marquee 28s linear infinite;
+    }
+    .marquee-track span { padding: 0; }
+    .marquee-track .dot { color: rgba(5,9,26,0.45); margin: 0 22px; }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ============================================================
+       TEXTURE-BACKED SECTION (quote)
+       ============================================================ */
+    #quote {
+      background-image: url('bg-quote.jpg');
+      background-size: cover; background-position: center;
+    }
+    #quote::before {
+      content: ''; position: absolute; inset: 0; background: rgba(5,9,26,0.82); z-index: 0;
+    }
+    #quote > * { position: relative; z-index: 1; }
+
+    /* ============================================================
+       QUOTE — ENQUIRY FORM
+       ============================================================ */
+    .quote-head { text-align: center; }
+    .quote-head .section-sub { margin-left: auto; margin-right: auto; }
+
+    .quote-wizard {
+      position: relative; max-width: 760px; margin: 54px auto 0;
+      background: rgba(12,19,48,0.72);
+      border: 1px dashed rgba(0,212,255,0.35); border-radius: 10px;
+      padding: 40px 22px 30px;
+      backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    }
+    @media (min-width: 768px) { .quote-wizard { padding: 46px 40px 34px; } }
+    .quote-wizard::before {
+      content: 'WORK ORDER #' attr(data-order-id);
+      position: absolute; top: -10px; left: 24px;
+      font-family: 'Space Mono', monospace; font-size: 11px; color: var(--color-cyan);
+      background: var(--color-bg); padding: 0 8px; letter-spacing: 0.1em;
+    }
+
+    .field-label {
+      display: block; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--color-muted); margin-bottom: 8px;
+    }
+    .text-input, .select-input, .textarea-input {
+      width: 100%; background: var(--color-bg); color: var(--color-white);
+      border: 1.5px solid var(--color-border); border-radius: 8px;
+      padding: 14px 14px; font-size: 16px; font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.18s ease-out, box-shadow 0.18s ease-out;
+    }
+    .text-input:focus, .select-input:focus, .textarea-input:focus {
+      border-color: var(--color-cyan); box-shadow: var(--glow-cyan); outline: none;
+    }
+    .text-input.error, .select-input.error, .textarea-input.error {
+      border-color: #ff4d4d; box-shadow: 0 0 0 2px rgba(255,77,77,0.18);
+    }
+    .textarea-input { resize: vertical; min-height: 110px; }
+    .select-input { appearance: none; -webkit-appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300d4ff' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center; background-size: 18px; padding-right: 42px;
+    }
+    /* ============================================================
+       BEHIND THE PRINT
+       ============================================================ */
+    #behind-the-print { padding: 0; position: relative; overflow: hidden; }
+    .behind-grid { display: grid; grid-template-columns: 1fr; }
+    @media (min-width: 900px) { .behind-grid { grid-template-columns: 1fr 1fr; } }
+    .workshop-col { position: relative; min-height: 320px; }
+    @media (min-width: 900px) { .workshop-col { min-height: 620px; } }
+    .workshop-photo {
+      width: 100%; height: 100%; min-height: 320px; object-fit: cover; object-position: center;
+      filter: brightness(0.75) contrast(1.05) saturate(0.65);
+    }
+    @media (min-width: 900px) { .workshop-photo { min-height: 620px; position: absolute; inset: 0; } }
+    /* bottom fade on mobile, right fade on desktop */
+    .workshop-col::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 120px;
+      background: linear-gradient(to bottom, transparent, var(--color-bg));
+    }
+    @media (min-width: 900px) {
+      .workshop-col::after { top: 0; bottom: 0; right: 0; left: auto; height: auto; width: 140px;
+        background: linear-gradient(to right, transparent, var(--color-bg)); }
+    }
+    .behind-text { padding: 64px 16px; display: flex; flex-direction: column; justify-content: center; }
+    @media (min-width: 768px) { .behind-text { padding: 80px 48px; } }
+    .behind-text h2 {
+      font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 5.5vw, 60px);
+      line-height: 0.95; letter-spacing: 0.01em; margin: 12px 0 18px;
+    }
+    .behind-text p { color: var(--color-muted); max-width: 480px; margin-bottom: 30px; }
+    .stat-row { display: flex; flex-wrap: wrap; gap: 30px; margin-bottom: 32px; }
+    .stat { display: flex; flex-direction: column; }
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif; font-size: clamp(44px, 7vw, 64px);
+      color: var(--color-cyan); text-shadow: var(--glow-cyan); line-height: 0.9;
+    }
+    .stat-label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); margin-top: 4px; }
+    .behind-cta {
+      align-self: flex-start; font-family: 'Space Mono', monospace; font-size: 13px;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-cyan);
+      display: inline-flex; gap: 8px; align-items: center;
+    }
+
+    /* ============================================================
+       FORM FIELD (shared by the quote form)
+       ============================================================ */
+    .form-field { display: flex; flex-direction: column; }
+
+    /* ============================================================
+       CONTACT / FINAL CTA
+       ============================================================ */
+    #contact { text-align: center; background:
+      radial-gradient(ellipse at 50% 0%, rgba(0,212,255,0.10), transparent 60%); }
+    .contact-headline {
+      font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 10vw, 130px);
+      line-height: 0.86; letter-spacing: 0.01em;
+    }
+    .contact-sub { color: var(--color-cyan); font-size: clamp(16px, 2.6vw, 20px); margin: 20px 0 36px; }
+    .contact-big-btn {
+      font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: clamp(16px, 3vw, 20px);
+      letter-spacing: 0.06em; text-transform: uppercase;
+      display: inline-flex; align-items: center; gap: 14px;
+      background: var(--whatsapp); color: #06210f;
+      padding: 22px 40px; border-radius: 8px; box-shadow: 0 6px 30px rgba(37,211,102,0.45);
+      transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    }
+    .contact-big-btn svg { width: 30px; height: 30px; }
+    @media (hover: hover) and (pointer: fine) {
+      .contact-big-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 44px rgba(37,211,102,0.65); }
+    }
+    .contact-details { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 36px; margin-top: 44px; color: var(--color-muted); }
+    .contact-details a, .contact-details span { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; }
+    .contact-details a { color: var(--color-white); transition: color 0.2s ease-out; }
+    @media (hover: hover) and (pointer: fine) { .contact-details a:hover { color: var(--color-cyan); } }
+    .contact-details .ic { color: var(--color-cyan); }
+
+    /* ============================================================
+       FOOTER
+       ============================================================ */
+    .footer { border-top: 1px solid var(--color-border); padding: 36px 0; }
+    .footer-inner { display: flex; flex-direction: column; gap: 20px; align-items: center; text-align: center; }
+    @media (min-width: 768px) { .footer-inner { flex-direction: row; justify-content: space-between; text-align: left; } }
+    .footer-logo { display: flex; align-items: center; gap: 10px; }
+    .footer-logo img { height: 38px; width: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border); }
+    .footer-logo .wordmark { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.05em; }
+    .footer-logo .wordmark span { color: var(--color-cyan); }
+    .footer-links { display: flex; flex-wrap: wrap; gap: 18px; justify-content: center; }
+    .footer-links a { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted); transition: color 0.2s ease-out; }
+    @media (hover: hover) and (pointer: fine) { .footer-links a:hover { color: var(--color-cyan); } }
+    .footer-copy { font-size: 12px; color: var(--color-muted); }
+
+    /* ============================================================
+       FLOATING WHATSAPP
+       ============================================================ */
+    .whatsapp-float {
+      position: fixed; bottom: 24px; right: 24px; z-index: 999;
+      width: 60px; height: 60px; background: var(--whatsapp); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.5);
+      transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    }
+    .whatsapp-float svg { width: 32px; height: 32px; }
+    @media (hover: hover) and (pointer: fine) {
+      .whatsapp-float:hover { transform: scale(1.1); box-shadow: 0 4px 30px rgba(37,211,102,0.7); }
+    }
+    .whatsapp-float .notif {
+      position: absolute; top: -2px; right: -2px; width: 16px; height: 16px;
+      background: var(--color-cyan); border-radius: 50%; border: 2px solid var(--color-bg);
+    }
+    .whatsapp-float .notif::after {
+      content: ''; position: absolute; inset: -4px; border-radius: 50%;
+      background: var(--color-cyan); opacity: 0.5; animation: pulse 1.6s ease-out infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.6; }
+      70% { transform: scale(1.9); opacity: 0; }
+      100% { transform: scale(1.9); opacity: 0; }
+    }
+
+    /* mobile sticky get-quote bar (hero only) */
+    .sticky-quote-bar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 800;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+      background: rgba(5,9,26,0.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--color-border);
+      transform: translateY(0); transition: transform 0.3s ease-out;
+    }
+    .sticky-quote-bar.hidden { transform: translateY(120%); }
+    .sticky-quote-bar .btn { width: 100%; }
+    @media (min-width: 768px) { .sticky-quote-bar { display: none; } }
+
+    /* ============================================================
+       SCROLL REVEAL
+       ============================================================ */
+    .print-in {
+      opacity: 0; transform: translateY(32px) skewY(0.5deg);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+      will-change: transform, opacity;
+    }
+    .print-in.visible { opacity: 1; transform: translateY(0) skewY(0); }
+
+    /* ============================================================
+       REDUCED MOTION
+       ============================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .print-in { opacity: 1; transform: none; }
+      .hero-anim { opacity: 1; transform: none; }
+      .marquee-track { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- ============ MOBILE NAV OVERLAY ============ -->
+  <div class="nav-overlay" id="navOverlay" aria-hidden="true">
+    <button class="nav-overlay-close" id="navClose" aria-label="Close menu">✕</button>
+    <a href="#quote" data-navlink>Quote</a>
+    <a href="#contact" data-navlink>Contact</a>
+    <a href="#quote" class="btn btn-primary overlay-cta" data-navlink>Get a Quote</a>
+  </div>
+
+  <!-- ============ NAVBAR ============ -->
+  <header class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="#hero" class="nav-logo" aria-label="Trashy Steez Prints home">
+        <img src="IMG_0926.jpg" alt="Trashy Steez Prints logo">
+        <span class="wordmark">TRASHY <span>STEEZ</span></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#quote" data-navlink>Quote</a>
+        <a href="#contact" data-navlink>Contact</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#quote" class="nav-cta">Get a Quote</a>
+        <a class="nav-wa wa-link" href="#" aria-label="Chat on WhatsApp">
+          <svg viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.738-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        </a>
+      </div>
+
+      <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false" aria-controls="navOverlay">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ HERO ============ -->
+  <section id="hero">
+    <div class="container hero-content">
+      <p class="hero-label hero-anim d1">// South Africa's Boldest Print Studio</p>
+      <h1 class="hero-headline">
+        <span class="line hero-anim d2">You Design It,</span>
+        <span class="hero-loud hero-anim d3">We Make It.</span>
+      </h1>
+      <p class="hero-sub hero-anim d4">T-shirts · Hoodies · Caps · Bottles · Bags · And more</p>
+      <div class="hero-ctas hero-anim d5">
+        <a href="#quote" class="btn btn-primary">Get an Instant Quote</a>
+        <a href="#" class="btn btn-outline wa-link">Chat on WhatsApp</a>
+      </div>
+    </div>
+    <div class="scroll-indicator" aria-hidden="true">
+      <div class="mouse"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- ============ MARQUEE ============ -->
+  <div class="marquee-strip" aria-label="Company highlights">
+    <div class="marquee-track" id="marqueeTrack">
+      <span>500+ Campaigns Printed</span><span class="dot" aria-hidden="true">✦</span>
+      <span>Nationwide Delivery</span><span class="dot" aria-hidden="true">✦</span>
+      <span>In-House Production</span><span class="dot" aria-hidden="true">✦</span>
+      <span>Fast Turnaround</span><span class="dot" aria-hidden="true">✦</span>
+      <span>Custom Designs Welcome</span><span class="dot" aria-hidden="true">✦</span>
+    </div>
+  </div>
+
+  <!-- ============ GET AN INSTANT QUOTE ============ -->
+  <section id="quote" class="section">
+    <div class="container">
+      <div class="quote-head print-in">
+        <p class="eyebrow">// Instant Quote</p>
+        <h2 class="section-title">Get an Instant Quote</h2>
+        <p class="section-sub">Fill in your details — we'll come back to you fast.</p>
+      </div>
+
+      <div class="quote-wizard print-in" id="quoteCard" data-order-id="0000">
+        <form id="quote-form" novalidate style="display:flex;flex-direction:column;gap:16px;">
+          <div class="form-field">
+            <label class="field-label" for="q-name">Your name</label>
+            <input class="text-input" type="text" id="q-name" name="name" placeholder="e.g. Thabo" autocomplete="name" required>
+          </div>
+          <div class="form-field">
+            <label class="field-label" for="q-phone">WhatsApp / phone number</label>
+            <input class="text-input" type="tel" id="q-phone" name="phone" placeholder="+27 ..." inputmode="tel" autocomplete="tel" required>
+          </div>
+          <div class="form-field">
+            <label class="field-label" for="q-product">What do you need printed?</label>
+            <select class="select-input" id="q-product" name="product" required>
+              <option value="" disabled selected>Select a product</option>
+              <option>T-Shirts</option>
+              <option>Hoodies</option>
+              <option>Caps</option>
+              <option>Tote Bags</option>
+              <option>Water Bottles</option>
+              <option>Banners</option>
+              <option>Work Shirts</option>
+              <option>Other / Not sure</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label" for="q-qty">Approximate quantity</label>
+            <select class="select-input" id="q-qty" name="quantity">
+              <option value="" disabled selected>Select quantity</option>
+              <option>1 – 10 units</option>
+              <option>10 – 50 units</option>
+              <option>50 – 100 units</option>
+              <option>100 – 250 units</option>
+              <option>250 – 500 units</option>
+              <option>500+ units</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label" for="q-method">Print method (if you know)</label>
+            <select class="select-input" id="q-method" name="method">
+              <option value="" selected>Not sure — advise me</option>
+              <option>Screen Print</option>
+              <option>Embroidery</option>
+              <option>DTG (Direct to Garment)</option>
+              <option>Heat Transfer</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label" for="q-notes">Anything else we should know?</label>
+            <textarea class="textarea-input" id="q-notes" name="notes" rows="3" placeholder="e.g. deadline, colours, artwork ready or not..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-whatsapp" style="width:100%;margin-top:4px;">
+            <svg viewBox="0 0 24 24" fill="#06210f" width="18" height="18" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.738-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            Send to WhatsApp →
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BEHIND THE PRINT ============ -->
+  <section id="behind-the-print">
+    <div class="behind-grid">
+      <div class="workshop-col">
+        <img class="workshop-photo" src="photo-workshop.jpg" alt="Inside the Trashy Steez workshop — sewing machines and rows of coloured thread spools" loading="lazy">
+      </div>
+      <div class="behind-text print-in">
+        <p class="eyebrow">// The Craft</p>
+        <h2>Every Thread.<br>Every Colour.<br>Every Campaign.</h2>
+        <p>We're not resellers. Every item is produced in-house — from the first stitch to the final print. That's why the quality is consistent, and why we can promise fast turnaround.</p>
+        <div class="stat-row">
+          <div class="stat">
+            <span class="stat-number" data-count="500" data-suffix="+">0</span>
+            <span class="stat-label">Campaigns Completed</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" data-count="48" data-suffix="hr">0</span>
+            <span class="stat-label">Average Turnaround</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" data-count="100" data-suffix="%">0</span>
+            <span class="stat-label">In-House Production</span>
+          </div>
+        </div>
+        <a href="#quote" class="behind-cta">Get a Quote →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT / FINAL CTA ============ -->
+  <section id="contact" class="section">
+    <div class="container">
+      <div class="print-in">
+        <p class="eyebrow">// Get in Touch</p>
+        <h2 class="contact-headline" style="font-size:clamp(36px,5vw,64px);">Let's Talk</h2>
+        <p class="contact-sub" style="color:var(--color-white);opacity:.85;">Drop us a message on WhatsApp or email — we respond quickly.</p>
+        <a href="#" class="contact-big-btn wa-link">
+          <svg viewBox="0 0 24 24" fill="#06210f" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.738-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+          Chat on WhatsApp
+        </a>
+        <div class="contact-details">
+          <a href="tel:+27680570848"><span class="ic">✆</span> +27 68 057 0848</a>
+          <a href="mailto:hello@trashysteez.co.za"><span class="ic">✉</span> hello@trashysteez.co.za</a>
+          <a href="https://instagram.com/trashysteez" target="_blank" rel="noopener"><span class="ic">◎</span> @trashysteez</a>
+          <span><span class="ic">📍</span> South Africa — Nationwide Delivery</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <a href="#hero" class="footer-logo">
+        <img src="IMG_0926.jpg" alt="Trashy Steez Prints logo">
+        <span class="wordmark">TRASHY <span>STEEZ</span></span>
+      </a>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="#quote">Quote</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center;">
+        <span class="footer-copy">© <span id="year">2025</span> Trashy Steez Prints. All rights reserved.</span>
+        <span class="footer-copy">Made in South Africa 🇿🇦</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============ FLOATING WHATSAPP ============ -->
+  <a class="whatsapp-float wa-link" href="#" aria-label="Chat with us on WhatsApp">
+    <span class="notif" aria-hidden="true"></span>
+    <svg viewBox="0 0 24 24" fill="#ffffff" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.738-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+  </a>
+
+  <!-- ============ MOBILE STICKY QUOTE BAR ============ -->
+  <div class="sticky-quote-bar" id="stickyBar">
+    <a href="#quote" class="btn btn-primary">Get an Instant Quote</a>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ============================================================
+       CONFIG
+       ============================================================ */
+    var WHATSAPP_NUMBER = '27680570848';
+
+    // Supabase — fill these in to enable lead logging (anon key is safe to expose).
+    var SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+    var SUPABASE_KEY = 'YOUR_ANON_PUBLIC_KEY';
+    var db = null;
+    function initSupabase() {
+      var configured = SUPABASE_URL.indexOf('YOUR_PROJECT_ID') === -1 &&
+                       SUPABASE_KEY.indexOf('YOUR_ANON') === -1;
+      if (configured && window.supabase && typeof window.supabase.createClient === 'function') {
+        try { db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { db = null; }
+      }
+    }
+    // supabase script is deferred; init once it (and the DOM) are ready
+    window.addEventListener('load', initSupabase);
+
+    /* ============================================================
+       HELPERS
+       ============================================================ */
+    var $  = function (s, c) { return (c || document).querySelector(s); };
+    var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
+
+    /* ============================================================
+       WHATSAPP LINKS
+       ============================================================ */
+    function waUrl(text) { return 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(text); }
+    var DEFAULT_WA = waUrl("Hi Trashy Steez! I'd like to get a quote.");
+    $$('.wa-link').forEach(function (a) { a.setAttribute('href', DEFAULT_WA); a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener'); });
+
+    /* ============================================================
+       QUOTE ENQUIRY FORM → WHATSAPP (no pricing / no estimate)
+       ============================================================ */
+    (function () {
+      var card = $('#quoteCard');
+      if (card) card.setAttribute('data-order-id', String(Math.floor(Math.random() * 9000) + 1000));
+      var form = $('#quote-form');
+      if (!form) return;
+      var required = ['#q-name', '#q-phone', '#q-product'];
+
+      function clearError(e) { if (e.target && e.target.classList) e.target.classList.remove('error'); }
+      form.addEventListener('input', clearError);
+      form.addEventListener('change', clearError);
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var ok = true, firstBad = null;
+        required.forEach(function (sel) {
+          var el = $(sel);
+          if (el && !String(el.value).trim()) {
+            el.classList.add('error'); ok = false;
+            if (!firstBad) firstBad = el;
+          }
+        });
+        if (!ok) { if (firstBad) firstBad.focus(); return; }
+
+        var lines = [
+          "Hi Trashy Steez! I'd like to get a quote:", "",
+          "Name: " + $('#q-name').value.trim(),
+          "Phone: " + $('#q-phone').value.trim(),
+          "Product: " + $('#q-product').value,
+          "Quantity: " + ($('#q-qty').value || 'Not specified'),
+          "Print method: " + ($('#q-method').value || 'Not sure — please advise')
+        ];
+        var notes = $('#q-notes').value.trim();
+        if (notes) lines.push("Notes: " + notes);
+
+        window.open(waUrl(lines.join('\n')), '_blank', 'noopener');
+      });
+    })();
+
+    /* ============================================================
+       NAV: hamburger + scroll state + active link
+       ============================================================ */
+    var nav = $('#nav');
+    var overlay = $('#navOverlay');
+    var hamburger = $('#hamburger');
+    function openMenu() { overlay.classList.add('open'); overlay.setAttribute('aria-hidden', 'false'); hamburger.setAttribute('aria-expanded', 'true'); document.body.style.overflow = 'hidden'; }
+    function closeMenu() { overlay.classList.remove('open'); overlay.setAttribute('aria-hidden', 'true'); hamburger.setAttribute('aria-expanded', 'false'); document.body.style.overflow = ''; }
+    hamburger.addEventListener('click', openMenu);
+    $('#navClose').addEventListener('click', closeMenu);
+    $$('[data-navlink]', overlay).forEach(function (a) { a.addEventListener('click', closeMenu); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+
+    var lastScroll = 0, ticking = false;
+    function onScroll() {
+      var y = window.pageYOffset;
+      nav.classList.toggle('scrolled', y > 50);
+      lastScroll = y; ticking = false;
+    }
+    window.addEventListener('scroll', function () {
+      if (!ticking) { window.requestAnimationFrame(onScroll); ticking = true; }
+    }, { passive: true });
+
+    // active nav link via IntersectionObserver
+    var navMap = {};
+    $$('.nav-links a[data-navlink]').forEach(function (a) { navMap[a.getAttribute('href').slice(1)] = a; });
+    var sectionEls = ['quote','contact'].map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    var navObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          $$('.nav-links a').forEach(function (a) { a.classList.remove('active'); });
+          var link = navMap[en.target.id];
+          if (link) link.classList.add('active');
+        }
+      });
+    }, { rootMargin: '-45% 0px -50% 0px', threshold: 0 });
+    sectionEls.forEach(function (s) { navObserver.observe(s); });
+
+    /* ============================================================
+       SCROLL REVEALS (.print-in)
+       ============================================================ */
+    var revObserver = new IntersectionObserver(function (entries, obs) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { en.target.classList.add('visible'); obs.unobserve(en.target); }
+      });
+    }, { threshold: 0.15 });
+    $$('.print-in').forEach(function (el) { revObserver.observe(el); });
+
+    /* ============================================================
+       COUNT-UP STATS
+       ============================================================ */
+    function animateCount(el, target, suffix) {
+      var start = null, duration = 1500;
+      function step(ts) {
+        if (!start) start = ts;
+        var progress = Math.min((ts - start) / duration, 1);
+        el.textContent = Math.floor(progress * target) + (suffix || '');
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+    var countObserver = new IntersectionObserver(function (entries, obs) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          var el = en.target;
+          if (prefersReduced()) { el.textContent = el.getAttribute('data-count') + (el.getAttribute('data-suffix') || ''); }
+          else { animateCount(el, parseInt(el.getAttribute('data-count'), 10), el.getAttribute('data-suffix') || ''); }
+          obs.unobserve(el);
+        }
+      });
+    }, { threshold: 0.5 });
+    $$('.stat-number').forEach(function (el) { countObserver.observe(el); });
+
+    /* ============================================================
+       MOBILE STICKY QUOTE BAR (hero only)
+       ============================================================ */
+    var stickyBar = $('#stickyBar');
+    var hero = $('#hero');
+    if (stickyBar && hero) {
+      var heroObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { stickyBar.classList.toggle('hidden', !en.isIntersecting); });
+      }, { threshold: 0.15 });
+      heroObserver.observe(hero);
+    }
+
+    /* prefers-reduced-motion helper (used by smooth-scroll + count-up) */
+    function prefersReduced() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+    /* ============================================================
+       DUPLICATE MARQUEE FOR SEAMLESS LOOP
+       ============================================================ */
+    var track = $('#marqueeTrack');
+    if (track) { track.innerHTML += track.innerHTML; }
+
+    /* ============================================================
+       MISC
+       ============================================================ */
+    $('#year').textContent = new Date().getFullYear();
+  })();
+  </script>
+</body>
+</html>
