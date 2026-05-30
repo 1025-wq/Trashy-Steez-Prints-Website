@@ -18,8 +18,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-  <!-- Supabase (deferred so it never blocks render) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
+  <!-- Supabase client (loaded before the inline script so the global is ready) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <style>
     /* ============================================================
@@ -770,19 +770,13 @@
        ============================================================ */
     var WHATSAPP_NUMBER = '27680570848';
 
-    // Supabase — fill these in to enable lead logging (anon key is safe to expose).
-    var SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-    var SUPABASE_KEY = 'YOUR_ANON_PUBLIC_KEY';
-    var db = null;
-    function initSupabase() {
-      var configured = SUPABASE_URL.indexOf('YOUR_PROJECT_ID') === -1 &&
-                       SUPABASE_KEY.indexOf('YOUR_ANON') === -1;
-      if (configured && window.supabase && typeof window.supabase.createClient === 'function') {
-        try { db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { db = null; }
-      }
-    }
-    // supabase script is deferred; init once it (and the DOM) are ready
-    window.addEventListener('load', initSupabase);
+    // Supabase client (anon public key — safe to expose in the browser)
+    const _sb = (window.supabase && window.supabase.createClient)
+      ? supabase.createClient(
+          'https://vwpsrvtxeesdvlgktbzv.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3cHNydnR4ZWVzZHZsZ2t0Ynp2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNjM5NDksImV4cCI6MjA5NTczOTk0OX0.oY9UAA4NPmATfPyhylOURil2rhbOT6sD5OEUD3bOPYg'
+        )
+      : null;
 
     /* ============================================================
        HELPERS
@@ -803,40 +797,45 @@
     (function () {
       var card = $('#quoteCard');
       if (card) card.setAttribute('data-order-id', String(Math.floor(Math.random() * 9000) + 1000));
-      var form = $('#quote-form');
-      if (!form) return;
-      var required = ['#q-name', '#q-phone', '#q-product'];
-
-      function clearError(e) { if (e.target && e.target.classList) e.target.classList.remove('error'); }
-      form.addEventListener('input', clearError);
-      form.addEventListener('change', clearError);
-
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        var ok = true, firstBad = null;
-        required.forEach(function (sel) {
-          var el = $(sel);
-          if (el && !String(el.value).trim()) {
-            el.classList.add('error'); ok = false;
-            if (!firstBad) firstBad = el;
-          }
-        });
-        if (!ok) { if (firstBad) firstBad.focus(); return; }
-
-        var lines = [
-          "Hi Trashy Steez! I'd like to get a quote:", "",
-          "Name: " + $('#q-name').value.trim(),
-          "Phone: " + $('#q-phone').value.trim(),
-          "Product: " + $('#q-product').value,
-          "Quantity: " + ($('#q-qty').value || 'Not specified'),
-          "Print method: " + ($('#q-method').value || 'Not sure — please advise')
-        ];
-        var notes = $('#q-notes').value.trim();
-        if (notes) lines.push("Notes: " + notes);
-
-        window.open(waUrl(lines.join('\n')), '_blank', 'noopener');
-      });
     })();
+
+    document.getElementById('quote-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const f = e.target;
+      const el = (n) => f.elements.namedItem(n);   // form.name/form.method are built-ins; use the controls collection
+      const required = [el('name'), el('phone'), el('product')];
+      let valid = true;
+      required.forEach(field => {
+        if (!field.value.trim()) {
+          field.classList.add('error');
+          field.addEventListener('input', () => field.classList.remove('error'), { once: true });
+          valid = false;
+        }
+      });
+      if (!valid) return;
+
+      const msg = [
+        "Hi Trashy Steez! I'd like to get a quote:",
+        '',
+        `Name: ${el('name').value.trim()}`,
+        `Phone: ${el('phone').value.trim()}`,
+        `Product: ${el('product').value}`,
+        `Quantity: ${el('quantity').value}`,
+        `Print method: ${el('method').value || 'Not sure — please advise'}`,
+        el('notes').value.trim() ? `Notes: ${el('notes').value.trim()}` : null,
+      ].filter(Boolean).join('\n');
+
+      try {
+        if (_sb) _sb.from('quote_leads').insert({
+          name: el('name').value.trim(), phone: el('phone').value.trim(),
+          product: el('product').value, quantity: el('quantity').value,
+          method: el('method').value || 'Not specified',
+          notes: el('notes').value.trim() || null
+        }).then(function () {}, function () {});   // fire-and-forget; never blocks WhatsApp
+      } catch (_) {}
+
+      window.open('https://wa.me/27680570848?text=' + encodeURIComponent(msg), '_blank');
+    });
 
     /* ============================================================
        NAV: hamburger + scroll state + active link
