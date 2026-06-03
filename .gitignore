@@ -4,3 +4,9 @@ node_modules/
 .DS_Store
 *.log
 .claude/
+
+# internal / credentials / source assets (never commit)
+brain.md
+SUPABASE_WIRING.md
+Trashy steez company portfolio.pdf
+trashy steez images/

@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Trashy Steez Prints — You Design It, We Make It</title>
-  <meta name="description" content="Trashy Steez Prints — South Africa's boldest custom print studio. T-shirts, hoodies, caps, bottles & more. Get an instant quote online.">
+  <title>Trashy Steez Prints - You Think It, We Bring It To Life</title>
+  <meta name="description" content="Trashy Steez Prints - South Africa's boldest custom print studio. T-shirts, hoodies, caps, bottles & more. Get an instant quote online.">
   <meta name="theme-color" content="#05091a">
 
   <!-- Open Graph / social -->
-  <meta property="og:title" content="Trashy Steez Prints — You Design It, We Make It">
+  <meta property="og:title" content="Trashy Steez Prints - You Think It, We Bring It To Life">
   <meta property="og:description" content="South Africa's boldest custom print studio. Instant quotes. Nationwide delivery.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="photo-factory.jpg">
@@ -349,7 +349,7 @@
     #quote > * { position: relative; z-index: 1; }
 
     /* ============================================================
-       QUOTE — ENQUIRY FORM
+       QUOTE - ENQUIRY FORM
        ============================================================ */
     .quote-head { text-align: center; }
     .quote-head .section-sub { margin-left: auto; margin-right: auto; }
@@ -430,6 +430,21 @@
       align-self: flex-start; font-family: 'Space Mono', monospace; font-size: 13px;
       letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-cyan);
       display: inline-flex; gap: 8px; align-items: center;
+    }
+
+    /* ============================================================
+       OUR WORK TEASER
+       ============================================================ */
+    .work-teaser { text-align: center; }
+    .client-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 12px; margin: 30px auto 34px; max-width: 720px; }
+    .client-chip {
+      font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--color-muted);
+      border: 1px solid var(--color-border); border-radius: 999px; padding: 9px 15px;
+      transition: color 0.2s ease-out, border-color 0.2s ease-out;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .work-teaser:hover .client-chip { border-color: var(--color-border-bright); }
     }
 
     /* ============================================================
@@ -553,6 +568,8 @@
   <div class="nav-overlay" id="navOverlay" aria-hidden="true">
     <button class="nav-overlay-close" id="navClose" aria-label="Close menu">✕</button>
     <a href="#quote" data-navlink>Quote</a>
+    <a href="clients.html">Our Work</a>
+    <a href="about.html">About</a>
     <a href="#contact" data-navlink>Contact</a>
     <a href="#quote" class="btn btn-primary overlay-cta" data-navlink>Get a Quote</a>
   </div>
@@ -567,6 +584,8 @@
 
       <nav class="nav-links" aria-label="Primary">
         <a href="#quote" data-navlink>Quote</a>
+        <a href="clients.html">Our Work</a>
+        <a href="about.html">About</a>
         <a href="#contact" data-navlink>Contact</a>
       </nav>
 
@@ -588,8 +607,8 @@
     <div class="container hero-content">
       <p class="hero-label hero-anim d1">// South Africa's Boldest Print Studio</p>
       <h1 class="hero-headline">
-        <span class="line hero-anim d2">You Design It,</span>
-        <span class="hero-loud hero-anim d3">We Make It.</span>
+        <span class="line hero-anim d2">You Think It,</span>
+        <span class="hero-loud hero-anim d3">We Bring It To Life.</span>
       </h1>
       <p class="hero-sub hero-anim d4">T-shirts · Hoodies · Caps · Bottles · Bags · And more</p>
       <div class="hero-ctas hero-anim d5">
@@ -620,7 +639,7 @@
       <div class="quote-head print-in">
         <p class="eyebrow">// Instant Quote</p>
         <h2 class="section-title">Get an Instant Quote</h2>
-        <p class="section-sub">Fill in your details — we'll come back to you fast.</p>
+        <p class="section-sub">Fill in your details - we'll come back to you fast.</p>
       </div>
 
       <div class="quote-wizard print-in" id="quoteCard" data-order-id="0000">
@@ -662,7 +681,7 @@
           <div class="form-field">
             <label class="field-label" for="q-method">Print method (if you know)</label>
             <select class="select-input" id="q-method" name="method">
-              <option value="" selected>Not sure — advise me</option>
+              <option value="" selected>Not sure - advise me</option>
               <option>Screen Print</option>
               <option>Embroidery</option>
               <option>DTG (Direct to Garment)</option>
@@ -686,12 +705,12 @@
   <section id="behind-the-print">
     <div class="behind-grid">
       <div class="workshop-col">
-        <img class="workshop-photo" src="photo-workshop.jpg" alt="Inside the Trashy Steez workshop — sewing machines and rows of coloured thread spools" loading="lazy">
+        <img class="workshop-photo" src="photo-workshop.jpg" alt="Inside the Trashy Steez workshop - sewing machines and rows of coloured thread spools" loading="lazy">
       </div>
       <div class="behind-text print-in">
         <p class="eyebrow">// The Craft</p>
         <h2>Every Thread.<br>Every Colour.<br>Every Campaign.</h2>
-        <p>We're not resellers. Every item is produced in-house — from the first stitch to the final print. That's why the quality is consistent, and why we can promise fast turnaround.</p>
+        <p>We're not resellers. Every item is produced in-house - from the first stitch to the final print. That's why the quality is consistent, and why we can promise fast turnaround.</p>
         <div class="stat-row">
           <div class="stat">
             <span class="stat-number" data-count="500" data-suffix="+">0</span>
@@ -711,13 +730,36 @@
     </div>
   </section>
 
+  <!-- ============ OUR WORK TEASER ============ -->
+  <section id="our-work" class="section work-teaser">
+    <div class="container">
+      <div class="print-in">
+        <p class="eyebrow">// Trusted Across SA</p>
+        <h2 class="section-title">Brands We've Printed For</h2>
+        <p class="section-sub" style="margin:12px auto 0;">From Shield and Kellogg's to Benylin and a whole MATLA trailer - we print on damn near everything.</p>
+        <div class="client-strip">
+          <span class="client-chip">Shield</span>
+          <span class="client-chip">Benylin</span>
+          <span class="client-chip">Dettol</span>
+          <span class="client-chip">Kellogg's</span>
+          <span class="client-chip">MATLA</span>
+          <span class="client-chip">Lucha Lunako</span>
+          <span class="client-chip">SANTACO</span>
+          <span class="client-chip">Black Business Unity</span>
+          <span class="client-chip">Reggies × Sthabi</span>
+        </div>
+        <a href="clients.html" class="btn btn-primary">See Our Work →</a>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ CONTACT / FINAL CTA ============ -->
   <section id="contact" class="section">
     <div class="container">
       <div class="print-in">
         <p class="eyebrow">// Get in Touch</p>
         <h2 class="contact-headline" style="font-size:clamp(36px,5vw,64px);">Let's Talk</h2>
-        <p class="contact-sub" style="color:var(--color-white);opacity:.85;">Drop us a message on WhatsApp or email — we respond quickly.</p>
+        <p class="contact-sub" style="color:var(--color-white);opacity:.85;">Drop us a message on WhatsApp or email - we respond quickly.</p>
         <a href="#" class="contact-big-btn wa-link">
           <svg viewBox="0 0 24 24" fill="#06210f" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.738-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
           Chat on WhatsApp
@@ -726,7 +768,7 @@
           <a href="tel:+27680570848"><span class="ic">✆</span> +27 68 057 0848</a>
           <a href="mailto:hello@trashysteez.co.za"><span class="ic">✉</span> hello@trashysteez.co.za</a>
           <a href="https://instagram.com/trashysteez" target="_blank" rel="noopener"><span class="ic">◎</span> @trashysteez</a>
-          <span><span class="ic">📍</span> South Africa — Nationwide Delivery</span>
+          <span><span class="ic">📍</span> South Africa - Nationwide Delivery</span>
         </div>
       </div>
     </div>
@@ -741,6 +783,8 @@
       </a>
       <nav class="footer-links" aria-label="Footer">
         <a href="#quote">Quote</a>
+        <a href="clients.html">Our Work</a>
+        <a href="about.html">About</a>
         <a href="#contact">Contact</a>
       </nav>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:center;">
@@ -770,7 +814,7 @@
        ============================================================ */
     var WHATSAPP_NUMBER = '27680570848';
 
-    // Supabase client (anon public key — safe to expose in the browser)
+    // Supabase client (anon public key - safe to expose in the browser)
     const _sb = (window.supabase && window.supabase.createClient)
       ? supabase.createClient(
           'https://vwpsrvtxeesdvlgktbzv.supabase.co',
@@ -821,7 +865,7 @@
         `Phone: ${el('phone').value.trim()}`,
         `Product: ${el('product').value}`,
         `Quantity: ${el('quantity').value}`,
-        `Print method: ${el('method').value || 'Not sure — please advise'}`,
+        `Print method: ${el('method').value || 'Not sure - please advise'}`,
         el('notes').value.trim() ? `Notes: ${el('notes').value.trim()}` : null,
       ].filter(Boolean).join('\n');
 
